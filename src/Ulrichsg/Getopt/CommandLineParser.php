@@ -168,15 +168,35 @@ class CommandLineParser
                 $value = (mb_strlen($value) > 0) ? $value : 1;
                 // add both long and short names (if they exist) to the option array to facilitate lookup
                 if ($option->short()) {
-                    $this->options[$option->short()] = $value;
+                    $this->addOptionValue($option->short(), $value);
                 }
                 if ($option->long()) {
-                    $this->options[$option->long()] = $value;
+                    $this->addOptionValue($option->long(), $value);
                 }
                 return;
             }
         }
         throw new \UnexpectedValueException("Option '$string' is unknown");
+    }
+
+    /**
+     * Add option value to parsed options. If an option has already been processed, the existing option
+     * will be converted into an array and the current value will be appended.
+     *
+     * @param string $name the option's name
+     * @param string $value the option's value
+     */
+    private function addOptionValue($option, $value) {
+        if (array_key_exists($option, $this->options)) {
+            if (!is_array($this->options[$option])) {
+                $firstValue = $this->options[$option];
+                $this->options[$option] = array($firstValue);
+            }
+            $this->options[$option][] = $value;
+        }
+        else {
+            $this->options[$option] = $value;
+        }
     }
 
     /**
